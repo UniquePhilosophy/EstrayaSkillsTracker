@@ -1,0 +1,286 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+.app-container {
+  display: flex; /* Use flexbox layout */
+}
+
+.right-column {
+  /* Your existing styles for the dashboard */
+  flex-grow: 1; /* Grow to fill available space */
+  transition: all 0.3s ease;
+  /* Add any other styles for the right column */
+}
+
+.hamburger-menu-container {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+}
+
+.hamburger-icon {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 30px;
+  height: 20px;
+  margin-right: 10px;
+}
+
+.bar {
+  width: 100%;
+  height: 4px;
+  background-color: #333;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.open .bar:nth-child(1) {
+  transform: translateY(5px) rotate(45deg);
+}
+
+.open .bar:nth-child(2) {
+  opacity: 0;
+}
+
+.open .bar:nth-child(3) {
+  transform: translateY(-5px) rotate(-45deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  display: none;
+}
+
+.hamburger-menu-container:hover .dropdown-menu {
+  display: block;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  padding: 10px;
+}
+
+a {
+  text-decoration: none;
+  color: #333;
+  display: block;
+}
+
+a:hover {
+  background-color: #f0f0f0;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 20px;
+  padding: 20px;
+}
+
+.profile-image-container {
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.profile-image {
+  width: 100%;
+  height: auto;
+  border-radius: 50%;
+}
+
+.profile-details {
+  flex: 1;
+}
+
+.profile-username {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.profile-level {
+  font-size: 16px;
+  color: #777;
+}
+
+.snapshot-heading {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.skill-snapshot {
+  background-color: #f2f2f2;
+  margin: 20px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+}
+
+.skill-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.skill-level {
+  font-size: 14px;
+  color: #333;
+}
+
+.skill {
+  max-width: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.skill-details {
+  overflow-wrap: break-word;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.task-snapshot {
+  background-color: #f2f2f2;
+  margin: 20px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+.tasks-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.task {
+  max-width: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.task-details {
+  overflow-wrap: break-word;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.task-description {
+  text-align: center;
+}
+
+.left-column {
+  width: 250px;
+  background-color: #f4f4f4;
+  height: 100%;
+  overflow-y: auto;
+  transition: width 0.3s;
+  display: flex;
+}
+
+.sidebar-open {
+  /* Styles for the open state */
+  width: 300px; /* Adjust the width as needed */
+}
+
+.sidebar-closed {
+  /* Styles for the closed state */
+  width: 0;
+  overflow-x: hidden; /* Hide horizontal scrollbar when closed */
+}
+
+.sidebar-header {
+  background-color: #333;
+  color: #fff;
+  padding: 16px;
+  text-align: center;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.skill-list {
+  padding: 16px;
+}
+
+.individual-skill {
+  margin-bottom: 16px;
+}
+
+.individual-skill h3 {
+  margin: 0;
+}
+
+.individual-skill-progress {
+  width: 100%;
+  height: 10px;
+  background-color: #ddd;
+  border-radius: 5px;
+}
+
+.individual-skill-progress-inner {
+  height: 100%;
+  background-color: #007bff;
+  border-radius: 5px;
+  transition: width 0.3s;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+@media (max-width: 768px) {
+  .tasks-list {
+    flex-direction: column;
+  }
+}
