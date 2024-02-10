@@ -41,13 +41,13 @@ const Dashboard = () => {
             console.log("User param is equal to current user.")
             if (currentUserSummary.topSkills.length === 0) {
               console.log("No current user summary, fetching...")
-              userTasksResponse = await fetch(`https://127.0.0.1:8000/usertask-skill/?user_id=${user_id}`);
+              userTasksResponse = await fetch(`https://localhost:8000/usertask-skill/?user_id=${user_id}`);
               if (!userTasksResponse.ok) {
                 console.log("Fetching user tasks failed.")
                 throw new Error('Failed to fetch user tasks');
               }
               const userTasksData = await userTasksResponse.json();
-              const tasksResponse = await fetch(`https://127.0.0.1:8000/task/`);
+              const tasksResponse = await fetch(`https://localhost:8000/task/`);
               if (!tasksResponse.ok) {
                 console.log("Fetching tasks failed.")
                 throw new Error('Failed to fetch tasks');
@@ -70,13 +70,13 @@ const Dashboard = () => {
           }        
           else if (userIDInt !== parseInt(targetUser)) {
             console.log("User param is not equal to current user or target user, fetching...")
-            userTasksResponse = await fetch(`https://127.0.0.1:8000/usertask-skill/?user_id=${user_id}`);
+            userTasksResponse = await fetch(`https://localhost:8000/usertask-skill/?user_id=${user_id}`);
             if (!userTasksResponse.ok) {
               console.log("Fetch user tasks failed.")
               throw new Error('Failed to fetch user tasks');
             }
             const userTasksData = await userTasksResponse.json();
-            const tasksResponse = await fetch(`https://127.0.0.1:8000/task/`);
+            const tasksResponse = await fetch(`https://localhost:8000/task/`);
             if (!tasksResponse.ok) {
               console.log("Fetch tasks failed.")
               throw new Error('Failed to fetch tasks');
@@ -98,13 +98,13 @@ const Dashboard = () => {
             console.log("User param is equal to target user")
             if (targetUserSummary.topSkills.length === 0) {
               console.log("No target user summary, fetching...")
-              userTasksResponse = await fetch(`https://127.0.0.1:8000/usertask-skill/?user_id=${user_id}`);
+              userTasksResponse = await fetch(`https://localhost:8000/usertask-skill/?user_id=${user_id}`);
               if (!userTasksResponse.ok) {
                 console.log("Fetching user tasks failed.")
                 throw new Error('Failed to fetch user tasks');
               }
               const userTasksData = await userTasksResponse.json();
-              const tasksResponse = await fetch(`https://127.0.0.1:8000/task/`);
+              const tasksResponse = await fetch(`https://localhost:8000/task/`);
               if (!tasksResponse.ok) {
                 console.log("Fetching tasks failed.")
                 throw new Error('Failed to fetch tasks');
@@ -133,13 +133,13 @@ const Dashboard = () => {
             console.log("Current user found.")
             if (currentUserSummary.topSkills.length === 0) {
               console.log("No current user summary, fetching...")
-              userTasksResponse = await fetch(`https://127.0.0.1:8000/usertask-skill/?user_id=${currentUser.id}`);
+              userTasksResponse = await fetch(`https://localhost:8000/usertask-skill/?user_id=${currentUser.id}`);
               if (!userTasksResponse.ok) {
                 console.log("Fetching user tasks failed.")
                 throw new Error('Failed to fetch user tasks');
               }
               const userTasksData = await userTasksResponse.json();
-              const tasksResponse = await fetch(`https://127.0.0.1:8000/task/`);
+              const tasksResponse = await fetch(`https://localhost:8000/task/`);
               if (!tasksResponse.ok) {
                 console.log("Fetching tasks failed.")
                 throw new Error('Failed to fetch tasks');

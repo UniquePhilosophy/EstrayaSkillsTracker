@@ -129,9 +129,9 @@ class CustomAuthToken(ObtainAuthToken):
         user = serializer.validated_data['user']
         expiry = timezone.now() + timedelta(days=7)
         token, created = Token.objects.get_or_create(user=user)
-        if not created:
-            token.expiry = expiry
-            token.save()
+        # if not created: # still working on this
+        #     token.expiry = expiry
+        #     token.save()
         response = Response({
             'user_id': user.pk,
             'expiry': expiry.isoformat()
@@ -142,6 +142,7 @@ class CustomAuthToken(ObtainAuthToken):
             httponly=True, 
             secure=True, 
             samesite='None', 
-            expires=expiry
+            expires=expiry,
+            path='/'
             )
         return response

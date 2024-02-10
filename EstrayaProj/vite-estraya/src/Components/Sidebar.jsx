@@ -9,7 +9,7 @@ function Sidebar() {
   const skillsState = useSelector((state) => state.summary.currentUserSummary.skillLevels)
 
   const fetchTargetSkill = async (skill) => {
-    const response = await fetch(`https://127.0.0.1:8000/usertask-byskill/${skill.id}/`, {
+    const response = await fetch(`https://localhost:8000/usertask-byskill/${skill.id}/`, {
       method: 'GET',
       credentials: 'include',
     });

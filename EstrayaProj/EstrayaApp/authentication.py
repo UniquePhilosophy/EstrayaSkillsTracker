@@ -6,8 +6,8 @@ class CookieTokenAuthentication(TokenAuthentication):
 
     def authenticate(self, request):
         token = request.COOKIES.get('authToken')
-        print(f'Cookies: {request.COOKIES}')
-        print(f'Token: {token}')
+        print(f'[Authentication.py] Cookies: {request.COOKIES}')
+        print(f'[Authentication.py] Token: {token}')
 
         if not token:
             raise AuthenticationFailed('No token provided')
@@ -19,7 +19,7 @@ class CookieTokenAuthentication(TokenAuthentication):
         except token_model.DoesNotExist:
             raise AuthenticationFailed('Invalid token')
 
-        if token_obj.expiry < timezone.now():
-            raise AuthenticationFailed('Token expired')
+        # if token.expires < timezone.now():
+        #     raise AuthenticationFailed('Token expired')
 
         return (token_obj.user, token_obj)
