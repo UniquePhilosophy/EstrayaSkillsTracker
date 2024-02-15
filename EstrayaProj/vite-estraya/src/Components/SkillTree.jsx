@@ -1,70 +1,72 @@
 import React, { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import * as d3 from 'd3';
-import * as d3dag from 'd3-dag';
+import { graphlib, dagre } from 'dagre-d3';
 
 const SkillTree = () => {
-  const ref = useRef();
-  const skill = useSelector(state => state.summary.targetSkill)
-  console.log("Target Skill: ", skill)
+  const svgRef = useRef();
+  const skill = useSelector(state => state.summary.targetSkill);
 
   useEffect(() => {
     if (!skill || Object.keys(skill).length === 0) {
       return;
     }
 
-    const svg = d3.select(ref.current);
+    const svg = d3.select(svgRef.current);
     const width = +svg.attr('width');
     const height = +svg.attr('height');
 
-    // Create nodes for each task
-    const nodes = skill.allTasks.map(task => ({ id: task.name }));
+    // Create nodes and links from "allTasks"
+    const nodes = skill.allTasks.map(task => ({
+      id: task.name,
+      label: task.name, // Define label for node
+    }));
+    const links = skill.allTasks.reduce((acc, task) => {
+      task.prerequisite.forEach(p => acc.push({ source: task.name, target: p }));
+      return acc;
+    }, []);
 
-    // Create links for each prerequisite
-    const links = skill.allTasks.flatMap((task, i) =>
-      task.prerequisite.map(prerequisite => ({ source: prerequisite.name, target: task.name }))
-    );
+    // Create a DAG using dagre layout
+    const g = new graphlib.Graph();
+    nodes.forEach(n => g.addNode(n.id, n));
+    links.forEach(l => g.addEdge(l.source, l.target));
 
-    // Create the DAG
-    const dag = d3dag.dagConnect()(links);
-
-    // Layout the DAG
-    d3dag.sugiyama()(dag);
+    // Perform dagre layout
+    dagre.layout(g);
 
     // Create scales for positioning
-    const x = d3.scaleLinear().domain(d3.extent(dag.descendants(), d => d.x)).range([0, width]);
-    const y = d3.scaleLinear().domain(d3.extent(dag.descendants(), d => d.y)).range([0, height]);
+    const x = d3.scaleLinear().domain(d3.extent(g.nodes(), d => d.x)).range([0, width]);
+    const y = d3.scaleLinear().domain(d3.extent(g.nodes(), d => d.y)).range([0, height]);
 
-    // Add lines for the links
-    svg.append('g')
-      .selectAll('path')
-      .data(dag.links())
-      .join('path')
-      .attr('d', ({ data }) => `
-        M${x(data.source.x)},${y(data.source.y)}
-        C${x((data.source.x + data.target.x) / 2)},${y(data.source.y)}
-         ${x((data.source.x + data.target.x) / 2)},${y(data.target.y)}
-         ${x(data.target.x)},${y(data.target.y)}
-      `)
-      .attr('fill', 'none')
-      .attr('stroke', '#000');
-
-    // Add circles for the nodes
+    // Render nodes as circles
     svg.append('g')
       .selectAll('circle')
-      .data(dag.descendants())
+      .data(g.nodes())
       .join('circle')
       .attr('cx', d => x(d.x))
       .attr('cy', d => y(d.y))
       .attr('r', 10)
       .attr('fill', '#000');
+
+    // Render links as paths
+    svg.append('g')
+      .selectAll('path')
+      .data(g.edges())
+      .join('path')
+      .attr('d', d => `
+        M${x(g.node(d.source).x)},${y(g.node(d.source).y)}
+        L${x(g.node(d.target).x)},${y(g.node(d.target).y)}
+      `)
+      .attr('stroke', '#ccc')
+      .attr('fill', 'none');
+
   }, [skill]);
 
   if (!skill || Object.keys(skill).length === 0) {
     return <div>Waiting for skills...</div>;
   }
 
-  return <svg ref={ref} width="960" height="600" />;
+  return <svg ref={svgRef} width="960" height="600" />;
 };
 
 export default SkillTree;
