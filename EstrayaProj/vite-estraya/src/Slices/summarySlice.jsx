@@ -11,7 +11,8 @@ const summarySlice = createSlice({
       overallLevel: 0
     },
     targetSkill: {
-
+      userTasks: [],
+      allTasks: []
     },
     targetUserSummary: {
       topSkills: [],
@@ -29,8 +30,8 @@ const summarySlice = createSlice({
       state.currentUserSummary.overallLevel = computeOverallLevel(userTasks, tasks);
     },
     setTargetSkill: (state, action) => {
-      const { skill } = action.payload;
-      state.targetSkill = skill
+      const { userTasks, allTasks } = action.payload;
+      state.targetSkill = { ...userTasks, allTasks };
     },
     setTargetUserSummary: (state, action) => {
       const { userTasks, tasks } = action.payload;

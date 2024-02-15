@@ -1,5 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+from rest_framework.authtoken.models import Token
+
+class ExpiringToken(Token):
+    expiry = models.DateTimeField(default=timezone.now)
 
 class Skill(models.Model):
     name = models.CharField(max_length=200)

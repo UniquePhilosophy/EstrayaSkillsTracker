@@ -9,18 +9,32 @@ function Sidebar() {
   const skillsState = useSelector((state) => state.summary.currentUserSummary.skillLevels)
 
   const fetchTargetSkill = async (skill) => {
-    const response = await fetch(`https://localhost:8000/usertask-byskill/${skill.id}/`, {
+    const userTasksResponse = await fetch(`https://localhost:8000/usertask-byskill/${skill.id}/`, {
       method: 'GET',
       credentials: 'include',
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (!userTasksResponse.ok) {
+      throw new Error(`HTTP error! status: ${userTasksResponse.status}`);
     }
 
-    const data = await response.json();
-    console.log("(Sidebar) Target Skill: ", data)
-    dispatch(setTargetSkill({ skill: data }));
+    const userTasksData = await userTasksResponse.json();
+
+    const allTasksResponse = await fetch(`https://localhost:8000/task/${skill.id}/`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!allTasksResponse.ok) {
+      throw new Error(`HTTP error! status: ${allTasksResponse.status}`);
+    }
+
+    const allTasksData = await allTasksResponse.json();
+
+    console.log("(Sidebar) Target Skill userTasks: ", userTasksData)
+    console.log("(Sidebar) Target Skill allTasks: ", allTasksData)
+
+    dispatch(setTargetSkill({ userTasks: userTasksData, allTasks: allTasksData }));
   }
 
   return (

@@ -1,5 +1,5 @@
 from django.utils import timezone
-from rest_framework.authtoken.models import Token
+from .models import ExpiringToken
 from rest_framework.response import Response
 
 class TokenExpiryMiddleware:
@@ -9,9 +9,10 @@ class TokenExpiryMiddleware:
     def __call__(self, request):
         if request.path != '/estraya-auth/':
             auth_token = request.COOKIES.get('authToken')
-            print(f'[Middleware] authToken: {auth_token}')
+            print(f'[Middleware] cookie: {auth_token}')
             if auth_token:
-                token = Token.objects.filter(key=auth_token).first()
-                # if token and timezone.now() > auth_token.expires:
-                #     return Response({'error': 'Token expired'}, status=401)
+                token = ExpiringToken.objects.filter(key=auth_token).first()
+                print(f'[Middleware] token: {token}')
+                if token and timezone.now() > token.expiry:
+                    return Response({'error': 'Token expired'}, status=401)
         return self.get_response(request)

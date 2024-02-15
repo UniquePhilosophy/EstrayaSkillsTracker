@@ -12,7 +12,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializers import *
-from .models import Language, LanguageTask, Skill, Task, UserTask, UserLanguage
+from .models import Language, LanguageTask, Skill, Task, UserTask, UserLanguage, ExpiringToken
 from .permissions import IsOwnerOrReadOnly
 from .authentication import CookieTokenAuthentication
 
@@ -79,13 +79,11 @@ class UserTaskListBySkill(generics.ListCreateAPIView):
     def get_queryset(self):
         user_id = self.request.user.id
         skill_id = self.kwargs['skill_id']
-        print(f'user_id: {user_id}, skill_id: {skill_id}')  # print user_id and skill_id
 
         tasks = Task.objects.filter(skill=skill_id)
-        print(f'tasks: {tasks}')  # print tasks
 
         user_tasks = UserTask.objects.filter(user=user_id, task__in=tasks)
-        print(f'user_tasks: {user_tasks}')  # print user_tasks
+        print(f'user_tasks: {user_tasks}')
 
         return user_tasks
 
@@ -128,10 +126,10 @@ class CustomAuthToken(ObtainAuthToken):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         expiry = timezone.now() + timedelta(days=7)
-        token, created = Token.objects.get_or_create(user=user)
-        # if not created: # still working on this
-        #     token.expiry = expiry
-        #     token.save()
+        token, created = ExpiringToken.objects.get_or_create(user=user)
+        if not created:
+            token.expiry = expiry
+            token.save()
         response = Response({
             'user_id': user.pk,
             'expiry': expiry.isoformat()
