@@ -1,72 +1,80 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
+import * as d3 from "https://cdn.skypack.dev/d3@7.8.4";
+import * as d3dag from "https://cdn.skypack.dev/d3-dag@1.0.0-1";
 import { useSelector } from 'react-redux';
-import * as d3 from 'd3';
-import { graphlib, dagre } from 'dagre-d3';
 
 const SkillTree = () => {
-  const svgRef = useRef();
-  const skill = useSelector(state => state.summary.targetSkill);
+  const targetSkill = useSelector(state => state.summary.targetSkill);
+  const data = targetSkill.allTasks;
+  const ref = useRef();
 
   useEffect(() => {
-    if (!skill || Object.keys(skill).length === 0) {
-      return;
+    if (data && data.length > 0) {
+      console.log("[SkillTree] allTasks", data)
+
+      // create our builder and turn the raw data into a graph
+      const builder = d3dag.graphStratify();
+      const graph = builder(data);
+      console.log("[SkillTree] d3 graph: ", graph)
+      // Compute Layout
+    
+      const nodeRadius = 20;
+      const nodeSize = [nodeRadius * 2, nodeRadius * 2];
+    
+      const line = d3.line().curve(d3.curveMonotoneY);
+    
+      const layout = d3dag
+        .sugiyama()
+        .nodeSize(nodeSize)
+        .gap([nodeRadius, nodeRadius]);
+    
+      // actually perform the layout and get the final size
+      const { width, height } = layout(graph);
+    
+      // Rendering
+    
+      // colors (grayscale instead of rainbow)
+      const steps = graph.nnodes() - 1;
+      const grayscale = d3.scaleLinear()
+        .domain([0, steps])
+        .range(["black", "lightgray"]);
+    
+      // global
+      const svg = d3
+        .select(ref.current)
+        // pad a little for link thickness
+        .style("width", width + 4)
+        .style("height", height + 4);
+    
+      // nodes
+      svg.append("g")
+        .attr("class", "nodes")
+        .selectAll("circle")
+        .data(graph.nodes())
+        .enter()
+        .append("circle")
+        .attr("fill", (d) => grayscale(d.layer))
+        .attr("r", nodeRadius)
+        .attr("cx", (d) => d.x)
+        .attr("cy", (d) => d.y);
+    
+      // edges (without arrows)
+      svg.append("g")
+        .attr("class", "edges")
+        .selectAll("path")
+        .data(graph.links())
+        .enter()
+        .append("path")
+        .attr("d", (d) => line(d.points))
+        .attr("stroke", "#ccc")
+        .attr("fill", "none");
     }
+  }, [data]);
 
-    const svg = d3.select(svgRef.current);
-    const width = +svg.attr('width');
-    const height = +svg.attr('height');
-
-    // Create nodes and links from "allTasks"
-    const nodes = skill.allTasks.map(task => ({
-      id: task.name,
-      label: task.name, // Define label for node
-    }));
-    const links = skill.allTasks.reduce((acc, task) => {
-      task.prerequisite.forEach(p => acc.push({ source: task.name, target: p }));
-      return acc;
-    }, []);
-
-    // Create a DAG using dagre layout
-    const g = new graphlib.Graph();
-    nodes.forEach(n => g.addNode(n.id, n));
-    links.forEach(l => g.addEdge(l.source, l.target));
-
-    // Perform dagre layout
-    dagre.layout(g);
-
-    // Create scales for positioning
-    const x = d3.scaleLinear().domain(d3.extent(g.nodes(), d => d.x)).range([0, width]);
-    const y = d3.scaleLinear().domain(d3.extent(g.nodes(), d => d.y)).range([0, height]);
-
-    // Render nodes as circles
-    svg.append('g')
-      .selectAll('circle')
-      .data(g.nodes())
-      .join('circle')
-      .attr('cx', d => x(d.x))
-      .attr('cy', d => y(d.y))
-      .attr('r', 10)
-      .attr('fill', '#000');
-
-    // Render links as paths
-    svg.append('g')
-      .selectAll('path')
-      .data(g.edges())
-      .join('path')
-      .attr('d', d => `
-        M${x(g.node(d.source).x)},${y(g.node(d.source).y)}
-        L${x(g.node(d.target).x)},${y(g.node(d.target).y)}
-      `)
-      .attr('stroke', '#ccc')
-      .attr('fill', 'none');
-
-  }, [skill]);
-
-  if (!skill || Object.keys(skill).length === 0) {
-    return <div>Waiting for skills...</div>;
-  }
-
-  return <svg ref={svgRef} width="960" height="600" />;
-};
+  return (
+    <svg ref={ref} style={{ width: '100%', height: '100vh' }}></svg>
+  );
+}
 
 export default SkillTree;
+  

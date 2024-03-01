@@ -30,11 +30,22 @@ function Sidebar() {
     }
 
     const allTasksData = await allTasksResponse.json();
+  
+    // data cleaning
+    const transformedUserTasks = userTasksData.map(task => ({ id: task.id }));
 
-    console.log("(Sidebar) Target Skill userTasks: ", userTasksData)
-    console.log("(Sidebar) Target Skill allTasks: ", allTasksData)
-
-    dispatch(setTargetSkill({ userTasks: userTasksData, allTasks: allTasksData }));
+    const transformedAllTasks = allTasksData.map(task => ({
+      id: task.id.toString(),
+      parentIds: task.prerequisite.map(id => id.toString()),
+      name: task.name,
+      description: task.description,
+      img_url: task.imgage_url
+    }));
+  
+    console.log("(Sidebar) Target Skill userTasks: ", transformedUserTasks)
+    console.log("(Sidebar) Target Skill allTasks: ", transformedAllTasks)
+  
+    dispatch(setTargetSkill({ userTasks: transformedUserTasks, allTasks: transformedAllTasks }));
   }
 
   return (

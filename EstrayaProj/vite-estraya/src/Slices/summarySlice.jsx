@@ -31,7 +31,8 @@ const summarySlice = createSlice({
     },
     setTargetSkill: (state, action) => {
       const { userTasks, allTasks } = action.payload;
-      state.targetSkill = { ...userTasks, allTasks };
+      state.targetSkill.userTasks = userTasks;
+      state.targetSkill.allTasks = allTasks;
     },
     setTargetUserSummary: (state, action) => {
       const { userTasks, tasks } = action.payload;
