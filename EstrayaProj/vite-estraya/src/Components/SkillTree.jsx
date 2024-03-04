@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import * as d3 from "https://cdn.skypack.dev/d3@7.8.4";
 import * as d3dag from "https://cdn.skypack.dev/d3-dag@1.0.0-1";
 import { useSelector } from 'react-redux';
@@ -15,7 +15,6 @@ const SkillTree = () => {
       // create our builder and turn the raw data into a graph
       const builder = d3dag.graphStratify();
       const graph = builder(data);
-      console.log("[SkillTree] d3 graph: ", graph)
       // Compute Layout
     
       const nodeRadius = 20;
@@ -27,6 +26,8 @@ const SkillTree = () => {
         .sugiyama()
         .nodeSize(nodeSize)
         .gap([nodeRadius, nodeRadius]);
+
+      console.log("[SkillTree] Layout: ", layout)
     
       // actually perform the layout and get the final size
       const { width, height } = layout(graph);
