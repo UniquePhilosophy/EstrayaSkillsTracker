@@ -9,7 +9,13 @@ const SkillTree = () => {
   const ref = useRef();
 
   useEffect(() => {
+    // Cleanup function to remove existing SVG content
+    const cleanup = () => {
+      d3.select(ref.current).selectAll("*").remove();
+    };
+  
     if (data && data.length > 0) {
+      cleanup();
       console.log("[SkillTree] allTasks", data)
 
       // create our builder and turn the raw data into a graph
@@ -17,7 +23,7 @@ const SkillTree = () => {
       const graph = builder(data);
       // Compute Layout
     
-      const nodeRadius = 20;
+      const nodeRadius = 30;
       const nodeSize = [nodeRadius * 2, nodeRadius * 2];
     
       const line = d3.line().curve(d3.curveMonotoneY);
@@ -25,18 +31,10 @@ const SkillTree = () => {
       const layout = d3dag
         .sugiyama()
         .nodeSize(nodeSize)
-        .gap([nodeRadius, nodeRadius]);
+        .gap([nodeRadius * 2.5, nodeRadius * 2.5]);
     
       // actually perform the layout and get the final size
       const { width, height } = layout(graph);
-    
-      // Rendering
-    
-      // colors (grayscale instead of rainbow)
-      const steps = graph.nnodes() - 1;
-      const grayscale = d3.scaleLinear()
-        .domain([0, steps])
-        .range(["black", "lightgray"]);
     
       // global
       const svg = d3
@@ -44,19 +42,33 @@ const SkillTree = () => {
         // pad a little for link thickness
         .style("width", width + 4)
         .style("height", height + 4);
-    
+      
       // nodes
-      svg.append("g")
+      const node = svg.append("g")
         .attr("class", "nodes")
-        .selectAll("circle")
+        .selectAll("g")
         .data(graph.nodes())
         .enter()
-        .append("circle")
-        .attr("fill", (d) => grayscale(d.layer))
-        .attr("r", nodeRadius)
-        .attr("cx", (d) => d.x)
-        .attr("cy", (d) => d.y);
-    
+        .append("g")
+        .attr('transform', d => `translate(${d.x},${d.y})`);
+
+      node.append("circle")
+          .attr("fill", "gray")
+          .attr("r", nodeRadius);
+
+      node.append("text")
+          .text((d) => d.data.name)
+          .attr("font-weight", "bold")
+          .attr("font-family", "sans-serif")
+          .attr("text-anchor", "middle")
+          .attr("alignment-baseline", "middle") 
+          // Adjust y attribute for positioning above the circle
+          // You may need to adjust -25 based on your specific needs
+          .attr('y', -25) 
+          // If you want to center align it horizontally, set x attribute to 0
+          //.attr('x', 0)
+          //.style('fill', 'black');
+
       // edges (without arrows)
       svg.append("g")
         .attr("class", "edges")
