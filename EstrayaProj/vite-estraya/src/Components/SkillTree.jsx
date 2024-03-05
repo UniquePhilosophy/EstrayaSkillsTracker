@@ -26,8 +26,6 @@ const SkillTree = () => {
         .sugiyama()
         .nodeSize(nodeSize)
         .gap([nodeRadius, nodeRadius]);
-
-      console.log("[SkillTree] Layout: ", layout)
     
       // actually perform the layout and get the final size
       const { width, height } = layout(graph);

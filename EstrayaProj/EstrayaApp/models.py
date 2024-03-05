@@ -52,7 +52,7 @@ class UserLanguage(models.Model):
 class Task(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
-    prerequisite = models.ManyToManyField('self', blank=True, null=True)
+    prerequisite = models.ManyToManyField('self', blank=True, null=True, symmetrical=False)
     skill = models.ManyToManyField(Skill)
     image_url = models.URLField(blank=True, default='https://picsum.photos/100')
     
