@@ -1,12 +1,19 @@
 import React, { useRef, useEffect } from 'react';
 import * as d3 from "https://cdn.skypack.dev/d3@7.8.4";
 import * as d3dag from "https://cdn.skypack.dev/d3-dag@1.0.0-1";
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { appendUserTasks } from '../Slices/summarySlice';
 
 const SkillTree = () => {
   const targetSkill = useSelector(state => state.summary.targetSkill);
-  const data = targetSkill.allTasks;
+  const allTasks = targetSkill.allTasks;
+  const userTasks = targetSkill.userTasks;
+
+  const currentUser = useSelector(state => state.user.currentUser);
+  console.log("[SkillTree] currentUser = ", currentUser, "of type ", typeof currentUser)
+
   const ref = useRef();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     // Cleanup function to remove existing SVG content
@@ -14,13 +21,14 @@ const SkillTree = () => {
       d3.select(ref.current).selectAll("*").remove();
     };
   
-    if (data && data.length > 0) {
+    if (allTasks && allTasks.length > 0) {
       cleanup();
-      console.log("[SkillTree] allTasks", data)
+      console.log("[SkillTree] allTasks", allTasks)
+      console.log("[SkillTree] userTasks", userTasks)
 
       // create our builder and turn the raw data into a graph
       const builder = d3dag.graphStratify();
-      const graph = builder(data);
+      const graph = builder(allTasks);
       // Compute Layout
     
       const nodeRadius = 30;
@@ -42,7 +50,7 @@ const SkillTree = () => {
         // pad a little for link thickness
         .style("width", width + 4)
         .style("height", height + 4);
-      
+
       // nodes
       const node = svg.append("g")
         .attr("class", "nodes")
@@ -52,22 +60,96 @@ const SkillTree = () => {
         .append("g")
         .attr('transform', d => `translate(${d.x},${d.y})`);
 
+      // Define the filter
+      const defs = svg.append("defs");
+
+      const pattern = defs.selectAll('pattern')
+        .data(allTasks)
+        .enter()
+        .append('pattern')
+        .attr('id', d => `img-${d.id}`)
+        .attr('height', '100%')
+        .attr('width', '100%')
+        .attr('patternContentUnits', 'objectBoundingBox')
+        .append('image')
+        .attr('height', 1)
+        .attr('width', 1)
+        .attr('preserveAspectRatio', 'none')
+        .attr('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+        .attr('xlink:href', d => d.img_url);
+
+      const radialGradient = defs.append("radialGradient")
+        .attr("id", "radial-gradient");
+
+      radialGradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", "gold");
+
+      radialGradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", "gold")
+        .attr("stop-opacity", "0.5");
+
+      const hoverGradient = defs.append("radialGradient")
+        .attr("id", "hover-gradient");
+      
+      hoverGradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", "orange");
+      
+      hoverGradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", "orange")
+        .attr("stop-opacity", "0.5");      
+
       node.append("circle")
-          .attr("fill", "gray")
-          .attr("r", nodeRadius);
+        .attr("fill", d => `url(#img-${d.data.id})`)
+        .attr("r", nodeRadius)
+        .style("stroke", d => userTasks.some(task => task.id === d.data.id) ? "url(#radial-gradient)" : "none")
+        .style("stroke-width", "15px")
+        .on("mouseover", function() {
+          d3.select(this).style("stroke", "url(#hover-gradient)");
+        })
+        .on("mouseout", function(d) {
+          d3.select(this).style("stroke", d => userTasks.some(task => task.id === d.data.id) ? "url(#radial-gradient)" : "none");
+        })
+        .on("click", function(d) {
+          let data = d3.select(this).data()[0];
+          let nodeId = data.data.id;
+          console.log("[Click] nodeId: ", nodeId)
+          fetch('https://localhost:8000/usertask/', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              user: currentUser,
+              task: parseInt(nodeId)
+            }),
+          })
+          .then(response => response.json())
+          .then(data => console.log(data))
+          .catch((error) => {
+            console.error('Error:', error);
+          });
+          dispatch(appendUserTasks({ userTasks: [{id: nodeId}] }));
+        })
+        .on("contextmenu", function(d, i) {
+          d3.event.preventDefault();
+          // Create your overlay box here
+          // You can access the description with d.data.description
+        });
 
       node.append("text")
-          .text((d) => d.data.name)
-          .attr("font-weight", "bold")
-          .attr("font-family", "sans-serif")
-          .attr("text-anchor", "middle")
-          .attr("alignment-baseline", "middle") 
-          // Adjust y attribute for positioning above the circle
-          // You may need to adjust -25 based on your specific needs
-          .attr('y', -25) 
-          // If you want to center align it horizontally, set x attribute to 0
-          //.attr('x', 0)
-          //.style('fill', 'black');
+        .text((d) => d.data.name)
+        .attr("font-weight", "bold")
+        .attr("font-family", "sans-serif")
+        .attr("text-anchor", "middle")
+        .attr("alignment-baseline", "middle") 
+        .attr('y', -25); 
+        //.attr('x', 0)
+        //.style('fill', 'black');
 
       // edges (without arrows)
       svg.append("g")
@@ -80,7 +162,7 @@ const SkillTree = () => {
         .attr("stroke", "#ccc")
         .attr("fill", "none");
     }
-  }, [data]);
+  }, [allTasks, userTasks]);
 
   return (
     <svg ref={ref} style={{ width: '100%', height: '100vh' }}></svg>

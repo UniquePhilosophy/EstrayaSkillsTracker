@@ -32,14 +32,16 @@ function Sidebar() {
     const allTasksData = await allTasksResponse.json();
   
     // data cleaning
-    const transformedUserTasks = userTasksData.map(task => ({ id: task.id }));
+    const transformedUserTasks = userTasksData.map(task => ({ 
+      id: task.task.toString()
+    }));
 
     const transformedAllTasks = allTasksData.map(task => ({
       id: task.id.toString(),
       parentIds: task.prerequisite.map(id => id.toString()),
       name: task.name,
       description: task.description,
-      img_url: task.imgage_url
+      img_url: task.image_url
     }));
   
     console.log("(Sidebar) Target Skill userTasks: ", transformedUserTasks)
@@ -59,7 +61,7 @@ function Sidebar() {
             <NavLink to={`/skill/${skill.id}`} key={skill.name} onClick={() => fetchTargetSkill(skill)}>
               <div className="skill-item">
                 <h3>{skill.name}</h3>
-                <h3>{skill.skill_level}</h3>
+                <h3>{Math.round(skill.skill_level)}</h3>
               </div>
             </NavLink>
           ))}

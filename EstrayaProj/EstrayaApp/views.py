@@ -58,13 +58,13 @@ class UserDetail(generics.RetrieveAPIView):
     serializer_class = UserSerializer
 
 class UserTaskList(generics.ListCreateAPIView):
-    authentication_classes = []
+    authentication_classes = [CookieTokenAuthentication]
     queryset = UserTask.objects.all()
     serializer_class = UserTaskSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        serializer.save(user=self.request.user)
 
 class UserTaskDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = UserTask.objects.all()

@@ -34,6 +34,14 @@ const summarySlice = createSlice({
       state.targetSkill.userTasks = userTasks;
       state.targetSkill.allTasks = allTasks;
     },
+    appendUserTasks: (state, action) => {
+      const { userTasks } = action.payload;
+      state.targetSkill.userTasks = [...state.targetSkill.userTasks, ...userTasks];
+    },
+    appendAllTasks: (state, action) => {
+      const { allTasks } = action.payload;
+      state.targetSkill.allTasks = [...state.targetSkill.allTasks, ...allTasks];
+    },      
     setTargetUserSummary: (state, action) => {
       const { userTasks, tasks } = action.payload;
       state.targetUserSummary.skillLevels = computeSkillLevels(userTasks, tasks);
@@ -44,5 +52,5 @@ const summarySlice = createSlice({
   },
 });
 
-export const { setCurrentUserSummary, setTargetSkill, setTargetUserSummary } = summarySlice.actions;
+export const { setCurrentUserSummary, setTargetSkill, setTargetUserSummary, appendUserTasks, appendAllTasks } = summarySlice.actions;
 export default summarySlice.reducer;
