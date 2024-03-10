@@ -8,6 +8,7 @@ const SkillTree = () => {
   const targetSkill = useSelector(state => state.summary.targetSkill);
   const allTasks = targetSkill.allTasks;
   const userTasks = targetSkill.userTasks;
+  const skillName = targetSkill.skill;
 
   const currentUser = useSelector(state => state.user.currentUser);
   console.log("[SkillTree] currentUser = ", currentUser, "of type ", typeof currentUser)
@@ -67,7 +68,7 @@ const SkillTree = () => {
         .data(allTasks)
         .enter()
         .append('pattern')
-        .attr('id', d => `img-${d.id}`)
+        .attr('id', d => `img-${d.taskid}`)
         .attr('height', '100%')
         .attr('width', '100%')
         .attr('patternContentUnits', 'objectBoundingBox')
@@ -103,19 +104,19 @@ const SkillTree = () => {
         .attr("stop-opacity", "0.5");      
 
       node.append("circle")
-        .attr("fill", d => `url(#img-${d.data.id})`)
+        .attr("fill", d => `url(#img-${d.data.taskid})`)
         .attr("r", nodeRadius)
-        .style("stroke", d => userTasks.some(task => task.id === d.data.id) ? "url(#radial-gradient)" : "none")
+        .style("stroke", d => userTasks.some(task => task.taskid === d.data.taskid) ? "url(#radial-gradient)" : "none")
         .style("stroke-width", "15px")
         .on("mouseover", function() {
           d3.select(this).style("stroke", "url(#hover-gradient)");
         })
         .on("mouseout", function(d) {
-          d3.select(this).style("stroke", d => userTasks.some(task => task.id === d.data.id) ? "url(#radial-gradient)" : "none");
+          d3.select(this).style("stroke", d => userTasks.some(task => task.taskid === d.data.taskid) ? "url(#radial-gradient)" : "none");
         })
         .on("click", function(d) {
           let data = d3.select(this).data()[0];
-          let nodeId = data.data.id;
+          let nodeId = data.data.taskid;
           console.log("[Click] nodeId: ", nodeId)
           fetch('https://localhost:8000/usertask/', {
             method: 'POST',
@@ -137,9 +138,24 @@ const SkillTree = () => {
         })
         .on("contextmenu", function(d, i) {
           d3.event.preventDefault();
-          // Create your overlay box here
-          // You can access the description with d.data.description
+          
+          const div = document.createElement('div');
+          document.body.appendChild(div);
+        
+          ReactDOM.render(
+            <Lightbox 
+              userTaskId={d.data.id} 
+              taskId={d.data.taskid} 
+              taskDescription={d.data.description} 
+              onClose={() => {
+                ReactDOM.unmountComponentAtNode(div);
+                document.body.removeChild(div);
+              }}
+            />, 
+            div
+          );
         });
+        
 
       node.append("text")
         .text((d) => d.data.name)
@@ -165,7 +181,10 @@ const SkillTree = () => {
   }, [allTasks, userTasks]);
 
   return (
-    <svg ref={ref} style={{ width: '100%', height: '100vh' }}></svg>
+    <div class='skilltree-main'>
+      <h1>{skillName}</h1>
+      <svg ref={ref} style={{ width: '100%', height: '100vh' }}></svg>
+    </div>
   );
 }
 
