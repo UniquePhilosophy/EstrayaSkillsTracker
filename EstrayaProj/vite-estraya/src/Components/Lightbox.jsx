@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-// import { deleteUserTask } from './actions';
+import { deleteUserTask } from '../Slices/summarySlice';
 
 const Lightbox = ({ userTaskId, taskId, taskDescription, onClose }) => {
-  const userTasks = useSelector(state => state.userTasks);
+  const userTasks = useSelector(state => state.summary.targetSkill.userTasks);
   const dispatch = useDispatch();
 
   const [isTaskCompleted, setIsTaskCompleted] = useState(false);
@@ -24,7 +24,7 @@ const Lightbox = ({ userTaskId, taskId, taskDescription, onClose }) => {
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-      dispatch(deleteUserTask(userTaskId));
+      dispatch(deleteUserTask({ userTaskId: userTaskId.toString() }));
     })
     .catch((error) => {
       console.error('Error:', error);
@@ -37,8 +37,8 @@ const Lightbox = ({ userTaskId, taskId, taskDescription, onClose }) => {
       position: 'fixed',
       top: 0,
       left: 0,
-      width: '100%',
-      height: '100%',
+      width: '20%',
+      height: '20%',
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
       display: 'flex',
       justifyContent: 'center',
@@ -50,7 +50,7 @@ const Lightbox = ({ userTaskId, taskId, taskDescription, onClose }) => {
         borderRadius: '10px',
       }}>
         <p>{taskDescription}</p>
-        {isTaskCompleted && <button onClick={handleDelete}>Delete Task</button>}
+        {isTaskCompleted && <button onClick={handleDelete}>Delete</button>}
         <button onClick={onClose}>Close</button>
       </div>
     </div>

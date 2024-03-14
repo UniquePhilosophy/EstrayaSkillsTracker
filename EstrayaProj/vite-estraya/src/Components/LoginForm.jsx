@@ -28,7 +28,8 @@ function LoginForm() {
 
       if (response.ok) {
         const data = await response.json();
-        dispatch(setCurrentUser(data.user_id));
+        console.log("[Login] User Data: ", data)
+        dispatch(setCurrentUser(data));
         navigate(`/dashboard/${data.user_id}`);
       } else {
         console.error('Login failed');

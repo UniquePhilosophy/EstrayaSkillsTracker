@@ -22,7 +22,7 @@ const IndividualSnapshotSkill = ({ skill }) => {
         <div className="skill-name">
           <h3>{skill.name}</h3>
         </div>
-        <div className="skill-level">Level {skill.skill_level}</div>
+        <div className="skill-level">Level {Math.round(skill.skill_level)}</div>
       </div>
     </div>
   );

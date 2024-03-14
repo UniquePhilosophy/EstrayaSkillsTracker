@@ -1,8 +1,11 @@
 import React, { useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom/client';
+import Store from '../Store';
 import * as d3 from "https://cdn.skypack.dev/d3@7.8.4";
 import * as d3dag from "https://cdn.skypack.dev/d3-dag@1.0.0-1";
-import { useSelector, useDispatch } from 'react-redux';
+import { Provider, useSelector, useDispatch } from 'react-redux';
 import { appendUserTasks } from '../Slices/summarySlice';
+import Lightbox from './Lightbox';  
 
 const SkillTree = () => {
   const targetSkill = useSelector(state => state.summary.targetSkill);
@@ -11,26 +14,19 @@ const SkillTree = () => {
   const skillName = targetSkill.skill;
 
   const currentUser = useSelector(state => state.user.currentUser);
-  console.log("[SkillTree] currentUser = ", currentUser, "of type ", typeof currentUser)
 
   const ref = useRef();
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Cleanup function to remove existing SVG content
     const cleanup = () => {
       d3.select(ref.current).selectAll("*").remove();
     };
   
     if (allTasks && allTasks.length > 0) {
       cleanup();
-      console.log("[SkillTree] allTasks", allTasks)
-      console.log("[SkillTree] userTasks", userTasks)
-
-      // create our builder and turn the raw data into a graph
       const builder = d3dag.graphStratify();
       const graph = builder(allTasks);
-      // Compute Layout
     
       const nodeRadius = 30;
       const nodeSize = [nodeRadius * 2, nodeRadius * 2];
@@ -42,17 +38,13 @@ const SkillTree = () => {
         .nodeSize(nodeSize)
         .gap([nodeRadius * 2.5, nodeRadius * 2.5]);
     
-      // actually perform the layout and get the final size
       const { width, height } = layout(graph);
     
-      // global
       const svg = d3
         .select(ref.current)
-        // pad a little for link thickness
         .style("width", width + 4)
         .style("height", height + 4);
 
-      // nodes
       const node = svg.append("g")
         .attr("class", "nodes")
         .selectAll("g")
@@ -61,14 +53,13 @@ const SkillTree = () => {
         .append("g")
         .attr('transform', d => `translate(${d.x},${d.y})`);
 
-      // Define the filter
       const defs = svg.append("defs");
 
       const pattern = defs.selectAll('pattern')
         .data(allTasks)
         .enter()
         .append('pattern')
-        .attr('id', d => `img-${d.taskid}`)
+        .attr('id', d => `img-${d.id}`)
         .attr('height', '100%')
         .attr('width', '100%')
         .attr('patternContentUnits', 'objectBoundingBox')
@@ -104,20 +95,19 @@ const SkillTree = () => {
         .attr("stop-opacity", "0.5");      
 
       node.append("circle")
-        .attr("fill", d => `url(#img-${d.data.taskid})`)
+        .attr("fill", d => `url(#img-${d.data.id})`)
         .attr("r", nodeRadius)
-        .style("stroke", d => userTasks.some(task => task.taskid === d.data.taskid) ? "url(#radial-gradient)" : "none")
+        .style("stroke", d => userTasks.some(task => task.id === d.data.id) ? "url(#radial-gradient)" : "none")
         .style("stroke-width", "15px")
         .on("mouseover", function() {
           d3.select(this).style("stroke", "url(#hover-gradient)");
         })
         .on("mouseout", function(d) {
-          d3.select(this).style("stroke", d => userTasks.some(task => task.taskid === d.data.taskid) ? "url(#radial-gradient)" : "none");
+          d3.select(this).style("stroke", d => userTasks.some(task => task.id === d.data.id) ? "url(#radial-gradient)" : "none");
         })
         .on("click", function(d) {
           let data = d3.select(this).data()[0];
-          let nodeId = data.data.taskid;
-          console.log("[Click] nodeId: ", nodeId)
+          let nodeId = data.data.id;
           fetch('https://localhost:8000/usertask/', {
             method: 'POST',
             credentials: 'include',
@@ -136,26 +126,41 @@ const SkillTree = () => {
           });
           dispatch(appendUserTasks({ userTasks: [{id: nodeId}] }));
         })
-        .on("contextmenu", function(d, i) {
-          d3.event.preventDefault();
+        .on("contextmenu", function(event, d) {
+          event.preventDefault();
           
           const div = document.createElement('div');
           document.body.appendChild(div);
+
+          let data = d3.select(this).data()[0];
+          let nodeId = data.data.id;
+
+          // BUG: User will not be able to re-add and delete the 
+          // task in the same session due to the node still having the old 
+          // userTaskId associated
+          const userTaskIdObject = userTasks.find(task => task.id === nodeId);
+
+          if (userTaskIdObject) {
+            const userTaskId = parseInt(userTaskIdObject.userTaskId, 10);
         
-          ReactDOM.render(
-            <Lightbox 
-              userTaskId={d.data.id} 
-              taskId={d.data.taskid} 
-              taskDescription={d.data.description} 
-              onClose={() => {
-                ReactDOM.unmountComponentAtNode(div);
-                document.body.removeChild(div);
-              }}
-            />, 
-            div
-          );
+            const root = ReactDOM.createRoot(div);
+            root.render(
+              <Provider store={Store}>
+                <Lightbox 
+                  userTaskId={userTaskId} 
+                  taskId={d.data.id} 
+                  taskDescription={d.data.description} 
+                  onClose={() => {
+                    root.unmount();
+                    document.body.removeChild(div);
+                  }}
+                />
+              </Provider>
+            );
+          } else {
+            console.error(`User task not found for nodeId ${nodeId}`);
+          }
         });
-        
 
       node.append("text")
         .text((d) => d.data.name)
@@ -167,7 +172,6 @@ const SkillTree = () => {
         //.attr('x', 0)
         //.style('fill', 'black');
 
-      // edges (without arrows)
       svg.append("g")
         .attr("class", "edges")
         .selectAll("path")

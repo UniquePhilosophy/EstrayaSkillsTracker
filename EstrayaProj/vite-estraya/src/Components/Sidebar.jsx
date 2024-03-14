@@ -33,21 +33,18 @@ function Sidebar() {
   
     // data cleaning
     const transformedUserTasks = userTasksData.map(task => ({ 
-      id: task.id.toString(),
-      taskid: task.task.toString()
+      userTaskId: task.id.toString(),
+      id: task.task.toString()
     }));
 
     const transformedAllTasks = allTasksData.map(task => ({
-      taskid: task.id.toString(),
+      id: task.id.toString(),
       parentIds: task.prerequisite.map(id => id.toString()),
       name: task.name,
       description: task.description,
       img_url: task.image_url
     }));
-  
-    console.log("(Sidebar) Target Skill userTasks: ", transformedUserTasks)
-    console.log("(Sidebar) Target Skill allTasks: ", transformedAllTasks)
-  
+    
     dispatch(setTargetSkill({ userTasks: transformedUserTasks, allTasks: transformedAllTasks, skill: skill.name }));
   }
 

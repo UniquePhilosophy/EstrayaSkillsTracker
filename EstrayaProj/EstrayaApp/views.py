@@ -132,6 +132,7 @@ class CustomAuthToken(ObtainAuthToken):
             token.save()
         response = Response({
             'user_id': user.pk,
+            'name': user.username,
             'expiry': expiry.isoformat()
         })
         response.set_cookie(
